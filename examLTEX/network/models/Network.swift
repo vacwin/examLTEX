@@ -7,7 +7,7 @@
 
 import Foundation
 struct Network: Decodable {
-    var phoneMask: String
+    var phoneMask: String?
     
     private enum CodingKeys: String, CodingKey {
         case phoneMask = "phoneMask"

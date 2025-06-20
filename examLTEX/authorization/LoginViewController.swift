@@ -10,6 +10,8 @@ import UIKit
 class LoginViewController: UIViewController {
     //MARK: - properties
     final var onLogin: (() -> Void)?
+    private var phoneCode: String?
+    private var phoneMask: String?
     //UI prop
     private var companyLogo: UIImageView = {
         let imageView = UIImageView()
@@ -228,7 +230,16 @@ class LoginViewController: UIViewController {
     //MARK: - network
     private func getMask() {
         RequestManager.shared.getNetwork { network, error in
-            print(network?.phoneMask, 123123)
+            guard
+                let network,
+                let phoneMask = network.phoneMask,
+                let formattedPhone = PhoneMaskFormatter.format(phoneMask)
+            else { return self.phoneTextField.placeholder = "" }
+            self.phoneCode = formattedPhone.0
+            self.phoneMask = formattedPhone.1
+            DispatchQueue.main.async { [weak self] in
+                self?.phoneTextField.text = formattedPhone.0
+            }
         }
     }
     //MARK: - actions
@@ -237,8 +248,6 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func onLoginButton() {
-        guard let phone = self.phoneTextField.text else { return }
-//        KeychainService.shared.save(phone, "phone")
         self.onLogin?()
     }
     
@@ -255,6 +264,9 @@ extension LoginViewController: UITextFieldDelegate {
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField == self.phoneTextField {
             textField.layer.borderColor = #colorLiteral(red: 0.6196078658, green: 0.6196078658, blue: 0.6196078658, alpha: 1)
+            if textField.text?.isEmpty ?? true, let phoneCode {
+                textField.text = phoneCode + " "
+            }
         }
         
         if textField == self.passwordTextField {

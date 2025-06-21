@@ -10,8 +10,8 @@ import UIKit
 class LoginViewController: UIViewController {
     //MARK: - properties
     final var onLogin: (() -> Void)?
-    private var phoneCode: String?
-    private var phoneMask: String?
+    private var phoneCode: String? = "+44"
+    private var phoneMask: String? = "XXXX-XXXXXX"
     //UI prop
     private var companyLogo: UIImageView = {
         let imageView = UIImageView()
@@ -145,7 +145,7 @@ class LoginViewController: UIViewController {
     private func setup() {
         self.setupConstraints()
         self.setupHideTap()
-        self.getMask()
+//        self.getMask()
     }
     //MARK: - UI
     private func setupConstraints() {
@@ -233,7 +233,7 @@ class LoginViewController: UIViewController {
             guard
                 let network,
                 let phoneMask = network.phoneMask,
-                let formattedPhone = PhoneMaskFormatter.format(phoneMask)
+                let formattedPhone = PhoneMaskFormatter.split(phoneMask)
             else { return self.phoneTextField.placeholder = "" }
             self.phoneCode = formattedPhone.0
             self.phoneMask = formattedPhone.1
@@ -252,7 +252,7 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func erasePhoneTextField() {
-        self.phoneTextField.text = ""
+        self.phoneTextField.text = self.phoneCode
     }
     
     @objc private func toggleSecureTextEntry() {
@@ -261,11 +261,45 @@ class LoginViewController: UIViewController {
 }
 //MARK: - delegate
 extension LoginViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if textField == self.phoneTextField {
+            guard
+                let text = textField.text,
+                let phoneCode,
+                let phoneMask,
+                let newRange = Range(range, in: text)
+            else { return false }
+            if range.location < phoneCode.count {
+                return false
+            }
+            var digits = text.dropFirst(phoneCode.count).filter(\.isNumber)
+            //deletion
+            if string.isEmpty {
+                if !digits.isEmpty {
+                    digits.removeLast()
+                }
+            } else {
+                let newText = text.replacingCharacters(in: newRange, with: string)
+                digits = newText.dropFirst(phoneCode.count).filter(\.isNumber)
+            }
+            let formatted = PhoneMaskFormatter.format(digits, with: phoneMask)
+            textField.text = phoneCode + formatted
+            //focus next textField
+            if digits.count == phoneMask.filter({ $0 == "X" }).count {
+                DispatchQueue.main.async {
+                    self.passwordTextField.becomeFirstResponder()
+                }
+            }
+            return false
+        }
+        return true
+    }
+    
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField == self.phoneTextField {
             textField.layer.borderColor = #colorLiteral(red: 0.6196078658, green: 0.6196078658, blue: 0.6196078658, alpha: 1)
             if textField.text?.isEmpty ?? true, let phoneCode {
-                textField.text = phoneCode + " "
+                textField.text = phoneCode
             }
         }
         

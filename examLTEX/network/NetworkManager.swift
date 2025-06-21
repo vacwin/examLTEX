@@ -46,7 +46,7 @@ class NetworkManager {
     ) {
         self.session.request(
             url,
-            method: .get,
+            method: .post,
             parameters: parameters,
             encoding: URLEncoding.default,
             headers: headers

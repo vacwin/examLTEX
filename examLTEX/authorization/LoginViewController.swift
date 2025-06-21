@@ -10,8 +10,9 @@ import UIKit
 class LoginViewController: UIViewController {
     //MARK: - properties
     final var onLogin: (() -> Void)?
-    private var phoneCode: String? = "+44"
-    private var phoneMask: String? = "XXXX-XXXXXX"
+    private var phoneCode: String?
+    private var phoneMask: String?
+    private var charToCompare: Character?
     //UI prop
     private var companyLogo: UIImageView = {
         let imageView = UIImageView()
@@ -129,7 +130,7 @@ class LoginViewController: UIViewController {
     private var loginButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = #colorLiteral(red: 0.0897930488, green: 0.4379105568, blue: 0.9215120673, alpha: 1)
+        button.tapDisabled()
         button.setTitle("Войти", for: .normal)
         button.layer.cornerRadius = 16
         button.clipsToBounds = true
@@ -145,7 +146,7 @@ class LoginViewController: UIViewController {
     private func setup() {
         self.setupConstraints()
         self.setupHideTap()
-//        self.getMask()
+        self.getMask()
     }
     //MARK: - UI
     private func setupConstraints() {
@@ -212,6 +213,11 @@ class LoginViewController: UIViewController {
         self.passwordTextField.delegate = self
         self.passwordTextField.rightView = self.toggleSecurityButton
         self.passwordTextField.rightViewMode = .always
+        self.passwordTextField.addTarget(
+            self,
+            action: #selector(textFieldDidChange(_:)),
+            for: .editingChanged
+        )
         self.toggleSecurityButton.addTarget(
             self,
             action: #selector(self.toggleSecureTextEntry),
@@ -237,6 +243,7 @@ class LoginViewController: UIViewController {
             else { return self.phoneTextField.placeholder = "" }
             self.phoneCode = formattedPhone.0
             self.phoneMask = formattedPhone.1
+            self.charToCompare = formattedPhone.2
             DispatchQueue.main.async { [weak self] in
                 self?.phoneTextField.text = formattedPhone.0
             }
@@ -248,15 +255,31 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func onLoginButton() {
+        guard
+            let phone = self.phoneTextField.text,
+            let password = self.passwordTextField.text
+        else { return }
+        RequestManager.shared.authenticateUser(with: phone.removePhoneChars, and: password) { authStatus, error in
+            print(authStatus, error)
+        }
         self.onLogin?()
     }
-    
+   
     @objc private func erasePhoneTextField() {
         self.phoneTextField.text = self.phoneCode
     }
     
     @objc private func toggleSecureTextEntry() {
         self.passwordTextField.isSecureTextEntry = !self.passwordTextField.isSecureTextEntry
+    }
+    
+    @objc private func textFieldDidChange(_ textField: UITextField) {
+        guard let text = textField.text else { return }
+        if text.count >= 1 {
+            self.loginButton.tapAllowed()
+        } else {
+            self.loginButton.tapDisabled()
+        }
     }
 }
 //MARK: - delegate
@@ -267,6 +290,7 @@ extension LoginViewController: UITextFieldDelegate {
                 let text = textField.text,
                 let phoneCode,
                 let phoneMask,
+                let charToCompare,
                 let newRange = Range(range, in: text)
             else { return false }
             if range.location < phoneCode.count {
@@ -282,15 +306,19 @@ extension LoginViewController: UITextFieldDelegate {
                 let newText = text.replacingCharacters(in: newRange, with: string)
                 digits = newText.dropFirst(phoneCode.count).filter(\.isNumber)
             }
-            let formatted = PhoneMaskFormatter.format(digits, with: phoneMask)
+            let formatted = PhoneMaskFormatter.format(digits, with: phoneMask, and: charToCompare)
             textField.text = phoneCode + formatted
             //focus next textField
-            if digits.count == phoneMask.filter({ $0 == "X" }).count {
+            if digits.count == phoneMask.filter({ $0 == "Х" }).count {
                 DispatchQueue.main.async {
                     self.passwordTextField.becomeFirstResponder()
                 }
             }
             return false
+        }
+        
+        if textField == self.passwordTextField {
+            textField.sendActions(for: .editingChanged)
         }
         return true
     }

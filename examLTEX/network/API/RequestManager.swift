@@ -23,4 +23,26 @@ class RequestManager {
             }
         }
     }
+    
+    public func authenticateUser(with phone: String, and password: String, _ completion: @escaping(AuthStatus?, Error?) -> Void) {
+        let parameters = [
+            "phone": phone,
+            "password": password
+        ]
+        NetworkManager.shared.post(
+            APIInfo.authUrl,
+            parameters,
+            [
+                "Conetnt-Type":"application/x-www-form-urlencoded"
+            ],
+            AuthStatus.self
+        ) { result in
+                switch result {
+                case .success(let authStatus):
+                    completion(authStatus, nil)
+                case .failure(let error):
+                    completion(nil, error)
+                }
+            }
+    }
 }

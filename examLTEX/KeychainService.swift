@@ -7,25 +7,27 @@
 
 import Foundation
 import Security
+enum KeychainKey: String {
+    case phone
+    case password
+}
 class KeychainService {
     static let shared = KeychainService()
     private init() {}
     
-    final func save(_ value: String, _ key: String) {
-        guard let data = value.data(using: .utf8) else { return }
+    final func save(_ value: String, _ key: KeychainKey) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecValueData as String: data
+            kSecAttrAccount as String: key.rawValue
         ]
         SecItemDelete(query as CFDictionary)
         SecItemAdd(query as CFDictionary, nil)
     }
     
-    final func get(_ key: String) -> String? {
+    final func get(_ key: KeychainKey) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
+            kSecAttrAccount as String: key.rawValue,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: true
         ]

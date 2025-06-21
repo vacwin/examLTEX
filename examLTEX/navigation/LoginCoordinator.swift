@@ -18,11 +18,15 @@ class LoginCoordinator: Coordinator {
     func start() {
         let loginVC = LoginViewController()
         loginVC.onLogin = { [weak self] in
-            self?.onLoginSuccess?()
+            self?.didLogin()
         }
         self.navigationController.setViewControllers(
             [loginVC],
             animated: false
         )
+    }
+    
+    private func didLogin() {
+        self.onLoginSuccess?()
     }
 }

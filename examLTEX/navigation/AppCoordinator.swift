@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 class AppCoordinator: Coordinator {
     var navigationController: UINavigationController
+    private var childCoordinators: [Coordinator] = []
     
     init(_ navigationController: UINavigationController) {
         self.navigationController = navigationController
@@ -20,9 +21,13 @@ class AppCoordinator: Coordinator {
     //MARK: - open smth funcs
     final func showLogin() {
         let loginCoordinator = LoginCoordinator(self.navigationController)
-        loginCoordinator.onLoginSuccess = { [weak self] in
-            //падает из-за отсутствия родителя
-            self?.showMain()
+        self.childCoordinators.append(loginCoordinator)
+        loginCoordinator.onLoginSuccess = { [weak self, weak loginCoordinator] in
+            guard let self else { return }
+            if let loginCoordinator {
+                self.removeChild(loginCoordinator)
+            }
+            self.showMain()
         }
         loginCoordinator.start()
     }
@@ -38,5 +43,8 @@ class AppCoordinator: Coordinator {
     
     final func showProfile() {
         
+    }
+    final func removeChild(_ coordinator: Coordinator) {
+        self.childCoordinators.removeAll { $0 === coordinator }
     }
 }

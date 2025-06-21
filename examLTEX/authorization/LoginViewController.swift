@@ -260,9 +260,13 @@ class LoginViewController: UIViewController {
             let password = self.passwordTextField.text
         else { return }
         RequestManager.shared.authenticateUser(with: phone.removePhoneChars, and: password) { authStatus, error in
-            print(authStatus, error)
+            guard let authStatus else { return }
+            if let success = authStatus.success, success {
+                self.onLogin?()
+                KeychainService.shared.save(phone, .phone)
+                KeychainService.shared.save(password, .password)
+            }
         }
-        self.onLogin?()
     }
    
     @objc private func erasePhoneTextField() {

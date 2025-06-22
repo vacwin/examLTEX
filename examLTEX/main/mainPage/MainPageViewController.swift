@@ -20,24 +20,30 @@ class MainPageViewController: UIViewController {
             self.sortLabel.text = self.sortedCase.rawValue
         }
     }
+    private let spinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.hidesWhenStopped = true
+        return spinner
+    }()
     private var tableView: UITableView = {
         let table = UITableView()
         table.register(
             MainPageTableViewCell.self,
             forCellReuseIdentifier: MainPageTableViewCell.identifier
         )
-        table.backgroundColor = #colorLiteral(red: 0.9568627477, green: 0.6588235497, blue: 0.5450980663, alpha: 1)
+        table.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 0)
         return table
     }()
     private var sortView: UIView = {
         let sortView = UIView()
-        sortView.backgroundColor = #colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1)
+        sortView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 0)
         return sortView
     }()
     private var sortLabel: UILabel = {
         let sortLabel = UILabel()
         sortLabel.text = "По умолчанию"
-        sortLabel.textColor = #colorLiteral(red: 0.2588235438, green: 0.7568627596, blue: 0.9686274529, alpha: 1)
+        sortLabel.font = .systemFont(ofSize: 15)
+        sortLabel.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         return sortLabel
     }()
     private let syncQueue = DispatchQueue(
@@ -77,6 +83,8 @@ class MainPageViewController: UIViewController {
     }
     
     private func setupConsraints() {
+        self.title = "Лента новостей"
+        self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         let safe = self.view.safeAreaLayoutGuide
         
         self.view.addSubview(self.sortView)
@@ -84,7 +92,7 @@ class MainPageViewController: UIViewController {
         self.sortView.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 16).isActive = true
         self.sortView.topAnchor.constraint(equalTo: safe.topAnchor, constant: 16).isActive = true
         self.sortView.heightAnchor.constraint(equalToConstant: 24).isActive = true
-        self.sortView.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        self.sortView.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -16).isActive = true
         
         self.view.addSubview(self.tableView)
         self.tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -100,6 +108,7 @@ class MainPageViewController: UIViewController {
     private func setTable() {
         self.tableView.delegate = self
         self.tableView.dataSource = self
+        self.tableView.backgroundView = self.spinner
     }
     
     private func setupRefreshButton() {
@@ -116,17 +125,17 @@ class MainPageViewController: UIViewController {
         self.sortLabel.leadingAnchor.constraint(equalTo: self.sortView.leadingAnchor).isActive = true
         self.sortLabel.topAnchor.constraint(equalTo: self.sortView.topAnchor).isActive = true
         self.sortLabel.bottomAnchor.constraint(equalTo: self.sortView.bottomAnchor).isActive = true
-        self.sortLabel.widthAnchor.constraint(equalToConstant: 76).isActive = true
+        self.sortLabel.widthAnchor.constraint(equalToConstant: 120).isActive = true
         
         let arrowImageView = UIImageView()
         arrowImageView.translatesAutoresizingMaskIntoConstraints = false
         self.sortView.addSubview(arrowImageView)
         arrowImageView.topAnchor.constraint(equalTo: self.sortView.topAnchor).isActive = true
-        arrowImageView.trailingAnchor.constraint(equalTo: self.sortView.trailingAnchor).isActive = true
+        arrowImageView.leadingAnchor.constraint(equalTo: self.sortLabel.trailingAnchor).isActive = true
         arrowImageView.bottomAnchor.constraint(equalTo: self.sortView.bottomAnchor).isActive = true
         arrowImageView.widthAnchor.constraint(equalToConstant: 24).isActive = true
         
-        arrowImageView.image = UIImage(named: "arrow.down.app.fill")
+        arrowImageView.image = UIImage(systemName: "arrow.down.app.fill")
      
         self.sortView.addGestureRecognizer(
             self.setSortGestureRecognizer()
@@ -149,8 +158,14 @@ class MainPageViewController: UIViewController {
     }
     //MARK: - network
     private func getPosts() {
+        DispatchQueue.main.async {
+            self.spinner.startAnimating()
+        }
         RequestManager.shared.getPosts { posts, error in
-            guard let posts else { return }
+            guard let posts else {
+                DispatchQueue.main.async { self.spinner.stopAnimating() }
+                return
+            }
             self.defaultSortedPosts = posts
             self.setPosts(posts)
         }
@@ -160,6 +175,7 @@ class MainPageViewController: UIViewController {
         self.syncQueue.async(flags: .barrier) {
             self._posts = posts
             DispatchQueue.main.async {
+                self.spinner.stopAnimating()
                 self.tableView.reloadData()
             }
         }
@@ -169,9 +185,11 @@ class MainPageViewController: UIViewController {
         let tempSorted: [Post]
         switch sortCase {
         case .byDefault:
+            self.sortedCase = .byDefault
             tempSorted = self.defaultSortedPosts
         case .byDate:
-            tempSorted = self.defaultSortedPosts.sorted { $0.date ?? "0.1" > $1.date ?? "0.2"}
+            self.sortedCase = .byDate
+            tempSorted = self.defaultSortedPosts.sorted { $0.date?.toISODate() ?? Date() < $1.date?.toISODate() ?? Date() }
         }
         self.setPosts(tempSorted)
     }
@@ -239,6 +257,10 @@ extension MainPageViewController: UITableViewDataSource {
             with: self.posts[indexPath.row]
         )
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
     }
 }
 

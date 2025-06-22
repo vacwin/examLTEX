@@ -14,7 +14,7 @@ class MainPageTableViewCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
-        label.textColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         label.font = .systemFont(ofSize: 17, weight: .bold)
         return label
     }()
@@ -22,7 +22,7 @@ class MainPageTableViewCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
-        label.textColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         label.font = .systemFont(ofSize: 17, weight: .medium)
         return label
     }()
@@ -30,7 +30,7 @@ class MainPageTableViewCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 1
-        label.textColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        label.textColor = #colorLiteral(red: 0.6196078658, green: 0.6196078658, blue: 0.6196078658, alpha: 1)
         label.font = .systemFont(ofSize: 17, weight: .medium)
         return label
     }()
@@ -56,6 +56,7 @@ class MainPageTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        self.selectionStyle = .none
         self.setupViews()
         self.setupConstraints()
     }
@@ -69,6 +70,7 @@ class MainPageTableViewCell: UITableViewCell {
     }
     
     private func setupViews() {
+        self.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 0)
         self.contentView.addSubview(self.itemImageView)
         self.contentView.addSubview(self.stackView)
         self.setupStack()
@@ -92,17 +94,14 @@ class MainPageTableViewCell: UITableViewCell {
         self.stackView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -16).isActive = true
         self.stackView.topAnchor.constraint(equalTo: self.itemImageView.topAnchor).isActive = true
         self.stackView.bottomAnchor.constraint(lessThanOrEqualTo: self.contentView.bottomAnchor, constant: -16).isActive = true
-        
-        let imgBottom = itemImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.contentView.bottomAnchor, constant: -16)
-        imgBottom.priority = .defaultHigh
-        imgBottom.isActive = true
     }
     
     private func setDada(_ post: Post) {
         self.titleLabel.text = post.title
         self.descriptionLabel.text = post.text
-        self.dateLabel.text = post.date
+        self.dateLabel.text = post.date?.toDate()
         if let image = post.image {
+            #warning("не понял, какой урл брать, поэтому закрыл картинки")
             let urlSting = "http://l-tech.ru" + image
             ImageLoader.shared.loadImage(urlString: urlSting) { [weak self] image in
                 guard let self else { return }

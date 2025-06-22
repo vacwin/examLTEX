@@ -19,10 +19,10 @@ class MainCoordinator: Coordinator {
         self.tabBar = UITabBarController()
         //main page
         let homeVC = MainPageViewController()
-        homeVC.title = "Home"
         let homeNav = UINavigationController(rootViewController: homeVC)
+        homeNav.navigationBar.titleTextAttributes = [.foregroundColor: #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)]
         homeNav.tabBarItem = UITabBarItem(
-            title: "Home",
+            title: "Лента новостей",
             image: UIImage(systemName: "house"),
             tag: 0
         )
@@ -32,7 +32,7 @@ class MainCoordinator: Coordinator {
         let favoriteNav = UINavigationController(rootViewController: favoriteVC)
         favoriteNav.tabBarItem = UITabBarItem(
             title: "Profile",
-            image: UIImage(systemName: "person"),
+            image: UIImage(systemName: "heart"),
             tag: 1
         )
         //profile
@@ -42,7 +42,7 @@ class MainCoordinator: Coordinator {
         profileNav.tabBarItem = UITabBarItem(
             title: "Profile",
             image: UIImage(systemName: "person"),
-            tag: 1
+            tag: 2
         )
         self.tabBar.viewControllers = [homeNav, favoriteNav, profileNav]
         self.navigationController.setViewControllers([self.tabBar], animated: true)

@@ -18,7 +18,7 @@ class LoginViewController: UIViewController {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
-        
+        imageView.image = UIImage(named: "loginLogo")
         return imageView
     }()
     private var enterLabel: UILabel = {
@@ -27,7 +27,7 @@ class LoginViewController: UIViewController {
         label.text = "Вход в аккаунт"
         label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         label.textAlignment = .center
-        label.font = .systemFont(ofSize: 24)
+        label.font = .systemFont(ofSize: 24, weight: .bold)
         return label
     }()
     //first stack
@@ -44,7 +44,7 @@ class LoginViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Телефон"
         label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        label.font = .systemFont(ofSize: 24)
+        label.font = .systemFont(ofSize: 17, weight: .bold)
         return label
     }()
     private var eraseButton: UIButton = {
@@ -91,7 +91,7 @@ class LoginViewController: UIViewController {
         let label = UILabel()
         label.text = "Пароль"
         label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        label.font = .systemFont(ofSize: 24)
+        label.font = .systemFont(ofSize: 17, weight: .bold)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -102,6 +102,7 @@ class LoginViewController: UIViewController {
         textField.keyboardType = .asciiCapable
         textField.isSecureTextEntry = true
         textField.backgroundColor = #colorLiteral(red: 1, green: 0, blue: 0, alpha: 0)
+        textField.placeholder = "Введите пароль"
         //text
         textField.autocorrectionType = .no
         textField.autocapitalizationType = .none
@@ -121,7 +122,7 @@ class LoginViewController: UIViewController {
     private var toggleSecurityButton: UIButton = {
         let button = UIButton()
         button.setImage(
-            UIImage(systemName: "eye"),
+            UIImage(systemName: "eye.slash"),
             for: .normal
         )
         button.tintColor = #colorLiteral(red: 0.6196078658, green: 0.6196078658, blue: 0.6196078658, alpha: 1)
@@ -129,8 +130,8 @@ class LoginViewController: UIViewController {
     }()
     private var errorLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ошибка"
-        label.textColor = #colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1)
+        label.text = "Введены неверные данные"
+        label.textColor = #colorLiteral(red: 0.8635036349, green: 0.05867321044, blue: 0.03717220202, alpha: 1)
         label.alpha = 0.0
         label.translatesAutoresizingMaskIntoConstraints = false
         label.heightAnchor.constraint(equalToConstant: 12).isActive = true
@@ -142,10 +143,12 @@ class LoginViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.tapDisabled()
         button.setTitle("Войти", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
         button.layer.cornerRadius = 16
         button.clipsToBounds = true
         return button
     }()
+    private var loginButtonBottomConstraint: NSLayoutConstraint!
     //MARK: - setup
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -154,6 +157,7 @@ class LoginViewController: UIViewController {
     }
 
     private func setup() {
+        self.setupNotifications()
         self.setupConstraints()
         self.setupHideTap()
         self.getMask()
@@ -189,8 +193,9 @@ class LoginViewController: UIViewController {
         self.view.addSubview(self.loginButton)
         self.loginButton.leadingAnchor.constraint(equalTo: self.passwordStackView.leadingAnchor).isActive = true
         self.loginButton.trailingAnchor.constraint(equalTo: self.passwordStackView.trailingAnchor).isActive = true
-        self.loginButton.topAnchor.constraint(equalTo: self.passwordStackView.bottomAnchor, constant: 48).isActive = true
         self.loginButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
+        self.loginButtonBottomConstraint = self.loginButton.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -16)
+        self.loginButtonBottomConstraint.isActive = true
         
         self.loginButton.addTarget(
             self,
@@ -241,8 +246,21 @@ class LoginViewController: UIViewController {
             target: self,
             action: #selector(self.onTapSelfView)
         )
-        tap.cancelsTouchesInView = false
         self.view.addGestureRecognizer(tap)
+    }
+    
+    private func updateToggleSecurityButton() {
+        if self.passwordTextField.isSecureTextEntry {
+            self.toggleSecurityButton.setImage(
+                UIImage(systemName: "eye.slash"),
+                for: .normal
+            )
+        } else {
+            self.toggleSecurityButton.setImage(
+                UIImage(systemName: "eye"),
+                for: .normal
+            )
+        }
     }
     //MARK: - network
     private func getMask() {
@@ -294,6 +312,22 @@ class LoginViewController: UIViewController {
             self.loginButton.tapDisabled()
         }
     }
+    //MARK: - notifications
+    private func setupNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.keyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+    }
     //MARK: - actions
     @objc private func onTapSelfView() {
         self.view.endEditing(true)
@@ -313,6 +347,7 @@ class LoginViewController: UIViewController {
     
     @objc private func toggleSecureTextEntry() {
         self.passwordTextField.isSecureTextEntry = !self.passwordTextField.isSecureTextEntry
+        self.updateToggleSecurityButton()
     }
     
     @objc private func textFieldDidChange(_ textField: UITextField) {
@@ -321,6 +356,24 @@ class LoginViewController: UIViewController {
             self.loginButton.tapAllowed()
         } else {
             self.loginButton.tapDisabled()
+        }
+    }
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard
+            let info = notification.userInfo,
+            let keyboardHeight = (info[UIResponder.keyboardFrameEndUserInfoKey]! as AnyObject).cgRectValue?.size.height
+        else { return }
+        self.loginButtonBottomConstraint.constant = -keyboardHeight - 16
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    @objc private func keyboardWillHide() {
+        self.loginButtonBottomConstraint.constant = -16
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
         }
     }
     //MARK: - errror handling :)

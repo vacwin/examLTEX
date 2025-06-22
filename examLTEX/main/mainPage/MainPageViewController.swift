@@ -44,7 +44,7 @@ class MainPageViewController: UIViewController {
     private var sortLabel: UILabel = {
         let sortLabel = UILabel()
         sortLabel.text = "По умолчанию"
-        sortLabel.font = .systemFont(ofSize: 15)
+        sortLabel.font = .systemFont(ofSize: 15, weight: .medium)
         sortLabel.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         return sortLabel
     }()
@@ -115,7 +115,8 @@ class MainPageViewController: UIViewController {
     
     private func setupRefreshButton() {
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .refresh,
+            image: UIImage(named: "refreshButton"),
+            style: .plain,
             target: self,
             action: #selector(self.didTapOnRefrseshButton)
         )
@@ -127,7 +128,7 @@ class MainPageViewController: UIViewController {
         self.sortLabel.leadingAnchor.constraint(equalTo: self.sortView.leadingAnchor).isActive = true
         self.sortLabel.topAnchor.constraint(equalTo: self.sortView.topAnchor).isActive = true
         self.sortLabel.bottomAnchor.constraint(equalTo: self.sortView.bottomAnchor).isActive = true
-        self.sortLabel.widthAnchor.constraint(equalToConstant: 120).isActive = true
+        self.sortLabel.widthAnchor.constraint(equalToConstant: 110).isActive = true
         
         let arrowImageView = UIImageView()
         arrowImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -137,7 +138,7 @@ class MainPageViewController: UIViewController {
         arrowImageView.bottomAnchor.constraint(equalTo: self.sortView.bottomAnchor).isActive = true
         arrowImageView.widthAnchor.constraint(equalToConstant: 24).isActive = true
         
-        arrowImageView.image = UIImage(systemName: "arrow.down.app.fill")
+        arrowImageView.image = UIImage(named: "sortingArrow")
      
         self.sortView.addGestureRecognizer(
             self.setSortGestureRecognizer()

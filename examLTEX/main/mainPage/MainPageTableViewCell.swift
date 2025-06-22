@@ -15,7 +15,7 @@ class MainPageTableViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
         label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        label.font = .systemFont(ofSize: 17, weight: .bold)
+        label.font = .systemFont(ofSize: 15, weight: .bold)
         return label
     }()
     private var descriptionLabel: UILabel = {
@@ -23,7 +23,7 @@ class MainPageTableViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
         label.textColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        label.font = .systemFont(ofSize: 17, weight: .medium)
+        label.font = .systemFont(ofSize: 15, weight: .light)
         return label
     }()
     private var dateLabel: UILabel = {
@@ -31,7 +31,7 @@ class MainPageTableViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 1
         label.textColor = #colorLiteral(red: 0.6196078658, green: 0.6196078658, blue: 0.6196078658, alpha: 1)
-        label.font = .systemFont(ofSize: 17, weight: .medium)
+        label.font = .systemFont(ofSize: 13, weight: .medium)
         return label
     }()
     private var itemImageView: UIImageView = {

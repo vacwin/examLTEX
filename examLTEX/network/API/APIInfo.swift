@@ -11,4 +11,5 @@ public struct APIInfo {
     public static var baseApiUrl: String { get { return self.baseUrl + "/v1" } }
     public static var netowrkUrl: String { get { return APIInfo.baseApiUrl + "/phone_masks"} }
     public static var authUrl: String { get { return APIInfo.baseApiUrl + "/auth" } }
+    public static var postsUrl: String { get { return APIInfo.baseApiUrl + "/posts" } }
 }

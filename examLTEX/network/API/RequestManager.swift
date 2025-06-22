@@ -37,12 +37,28 @@ class RequestManager {
             ],
             AuthStatus.self
         ) { result in
-                switch result {
-                case .success(let authStatus):
-                    completion(authStatus, nil)
-                case .failure(let error):
-                    completion(nil, error)
-                }
+            switch result {
+            case .success(let authStatus):
+                completion(authStatus, nil)
+            case .failure(let error):
+                completion(nil, error)
             }
+        }
+    }
+    
+    public func getPosts(_ completion: @escaping([Post]?, Error?) -> Void) {
+        NetworkManager.shared.get(
+            APIInfo.postsUrl,
+            nil,
+            [:],
+            [Post].self
+        ) { result in
+            switch result {
+            case .success(let posts):
+                completion(posts, nil)
+            case .failure(let error):
+                completion(nil, error)
+            }
+        }
     }
 }

@@ -13,6 +13,7 @@ enum SortedCase: String {
 }
 
 class MainPageViewController: UIViewController {
+    final var didSelectPost: ((Post) -> Void)?
     //MARK: - properties
     private var refreshTimer: Timer?
     private var sortedCase: SortedCase = .byDefault {
@@ -23,6 +24,7 @@ class MainPageViewController: UIViewController {
     private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView(style: .large)
         spinner.hidesWhenStopped = true
+        spinner.color = .black
         return spinner
     }()
     private var tableView: UITableView = {
@@ -159,6 +161,7 @@ class MainPageViewController: UIViewController {
     //MARK: - network
     private func getPosts() {
         DispatchQueue.main.async {
+            self.spinner.isHidden = false
             self.spinner.startAnimating()
         }
         RequestManager.shared.getPosts { posts, error in
@@ -260,7 +263,7 @@ extension MainPageViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+        self.didSelectPost?(self.posts[indexPath.row])
     }
 }
 

@@ -9,14 +9,18 @@ import Foundation
 import UIKit
 class AppCoordinator: Coordinator {
     var navigationController: UINavigationController
+    private var window: UIWindow
     private var childCoordinators: [Coordinator] = []
     
-    init(_ navigationController: UINavigationController) {
-        self.navigationController = navigationController
+    init(_ window: UIWindow) {
+        self.navigationController = UINavigationController()
+        self.window = window
         self.navigationController.isNavigationBarHidden = true
     }
     
     final func start() {
+        self.window.rootViewController = self.navigationController
+        self.window.makeKeyAndVisible()
         self.showLogin()
     }
     //MARK: - open smth funcs
@@ -35,6 +39,7 @@ class AppCoordinator: Coordinator {
     
     final func showMain() {
         let mainCoordinator = MainCoordinator(self.navigationController)
+        self.childCoordinators.append(mainCoordinator)
         mainCoordinator.start()
     }
     

@@ -16,12 +16,15 @@ class KeychainService {
     private init() {}
     
     final func save(_ value: String, _ key: KeychainKey) {
+        guard let data = value.data(using: .utf8) else { return }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key.rawValue
         ]
         SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        SecItemAdd(addQuery as CFDictionary, nil)
     }
     
     final func get(_ key: KeychainKey) -> String? {

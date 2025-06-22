@@ -127,6 +127,16 @@ class LoginViewController: UIViewController {
         button.tintColor = #colorLiteral(red: 0.6196078658, green: 0.6196078658, blue: 0.6196078658, alpha: 1)
         return button
     }()
+    private var errorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ошибка"
+        label.textColor = #colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1)
+        label.alpha = 0.0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.heightAnchor.constraint(equalToConstant: 12).isActive = true
+        label.font = .systemFont(ofSize: 12)
+        return label
+    }()
     private var loginButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -209,6 +219,7 @@ class LoginViewController: UIViewController {
         self.passwordStackView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 0)
         self.passwordStackView.addArrangedSubview(self.passwordLabel)
         self.passwordStackView.addArrangedSubview(self.passwordTextField)
+        self.passwordStackView.addArrangedSubview(self.errorLabel)
         
         self.passwordTextField.delegate = self
         self.passwordTextField.rightView = self.toggleSecurityButton
@@ -240,13 +251,47 @@ class LoginViewController: UIViewController {
                 let network,
                 let phoneMask = network.phoneMask,
                 let formattedPhone = PhoneMaskFormatter.split(phoneMask)
-            else { return self.phoneTextField.placeholder = "" }
+            else {
+                self.phoneTextField.placeholder = ""
+                return
+            }
             self.phoneCode = formattedPhone.0
             self.phoneMask = formattedPhone.1
             self.charToCompare = formattedPhone.2
             DispatchQueue.main.async { [weak self] in
-                self?.phoneTextField.text = formattedPhone.0
+                self?.checkStoredCredentials()
             }
+        }
+    }
+    
+    private func loginIntoApp(with phone: String, and password: String) {
+        RequestManager.shared.authenticateUser(with: phone.removePhoneChars, and: password) { authStatus, error in
+            guard let authStatus else { return self.showErrorMessage()}
+            if let success = authStatus.success, success {
+                self.onLogin?()
+                KeychainService.shared.save(phone, .phone)
+                KeychainService.shared.save(password, .password)
+            } else {
+                self.showErrorMessage()
+                debugPrint(authStatus.success as Any)
+            }
+        }
+    }
+    //MARK: - check keychain
+    private func checkStoredCredentials() {
+        if let phone = KeychainService.shared.get(.phone), !phone.isEmpty {
+            self.phoneTextField.text = phone
+        } else {
+            self.phoneTextField.text = self.phoneCode
+        }
+        if let password = KeychainService.shared.get(.password), !password.isEmpty {
+            self.passwordTextField.text = password
+        }
+        let isFormEmpty = (self.phoneTextField.text?.isEmpty ?? true) || (self.passwordTextField.text?.isEmpty ?? true)
+        if !isFormEmpty {
+            self.loginButton.tapAllowed()
+        } else {
+            self.loginButton.tapDisabled()
         }
     }
     //MARK: - actions
@@ -259,14 +304,7 @@ class LoginViewController: UIViewController {
             let phone = self.phoneTextField.text,
             let password = self.passwordTextField.text
         else { return }
-        RequestManager.shared.authenticateUser(with: phone.removePhoneChars, and: password) { authStatus, error in
-            guard let authStatus else { return }
-            if let success = authStatus.success, success {
-                self.onLogin?()
-                KeychainService.shared.save(phone, .phone)
-                KeychainService.shared.save(password, .password)
-            }
-        }
+        self.loginIntoApp(with: phone, and: password)
     }
    
     @objc private func erasePhoneTextField() {
@@ -283,6 +321,17 @@ class LoginViewController: UIViewController {
             self.loginButton.tapAllowed()
         } else {
             self.loginButton.tapDisabled()
+        }
+    }
+    //MARK: - errror handling :)
+    private func showErrorMessage() {
+        UIView.animate(withDuration: 0.3) {
+            self.errorLabel.alpha = 1
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            UIView.animate(withDuration: 0.3) {
+                self.errorLabel.alpha = 0
+            }
         }
     }
 }

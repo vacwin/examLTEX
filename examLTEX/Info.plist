@@ -30,6 +30,13 @@
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
+            <key>l-tech.ru</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
 		</dict>
 	</dict>
 </dict>

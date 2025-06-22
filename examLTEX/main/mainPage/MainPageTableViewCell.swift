@@ -36,6 +36,7 @@ class MainPageTableViewCell: UITableViewCell {
     }()
     private var itemImageView: UIImageView = {
         let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
         return imageView
     }()
     private var stackView: UIStackView = {
@@ -101,5 +102,18 @@ class MainPageTableViewCell: UITableViewCell {
         self.titleLabel.text = post.title
         self.descriptionLabel.text = post.text
         self.dateLabel.text = post.date
+        if let image = post.image {
+            let urlSting = "http://l-tech.ru" + image
+            ImageLoader.shared.loadImage(urlString: urlSting) { [weak self] image in
+                guard let self else { return }
+                DispatchQueue.main.async {
+                    if let image {
+                        self.itemImageView.image = image
+                    } else {
+                        self.itemImageView.image = UIImage(systemName: "sun.snow.circle.fill")
+                    }
+                }
+            }
+        }
     }
 }
